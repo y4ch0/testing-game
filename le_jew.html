@@ -1,0 +1,1311 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Le Jew – demo na wirtualne żetony</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0d1f;
+        --panel: #151936;
+        --line: #2b3270;
+        --txt: #eef0ff;
+        --mut: #8f97d6;
+        --gold: #ffc83d;
+        --teal: #35e0c2;
+        --pink: #ff4f9a;
+        box-sizing: border-box;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-padding-top: env(safe-area-inset-top, 0px);
+      }
+      body {
+        margin: 0;
+        background: radial-gradient(1200px 700px at 50% -10%, #2a1f63, var(--bg));
+        color: var(--txt);
+        font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px;
+      }
+      h1 {
+        margin: 6px 0 2px;
+        font-size: 1.5rem;
+        letter-spacing: 0.04em;
+        color: var(--gold);
+        text-shadow: 0 0 18px #ffc83d66;
+      }
+      .sub {
+        color: var(--mut);
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+      }
+      #jp {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .jt {
+        padding: 4px 10px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        font-size: 0.75rem;
+        color: var(--mut);
+        background: var(--panel);
+      }
+      .jt.on {
+        color: #1a1200;
+        background: var(--gold);
+        border-color: var(--gold);
+        box-shadow: 0 0 14px #ffc83daa;
+      }
+      #wrap {
+        position: relative;
+        background: linear-gradient(180deg, #1b2050, #10132e);
+        border: 2px solid var(--line);
+        border-radius: 14px;
+        padding: 8px;
+        width: min(96vw, 520px);
+      }
+      #mk {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 4px;
+        margin-bottom: 6px;
+      }
+      .mk {
+        height: 8px;
+        border-radius: 4px;
+        background: #232a63;
+      }
+      .mk.on {
+        background: var(--gold);
+        box-shadow: 0 0 10px var(--gold);
+      }
+      #board {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 4px;
+        position: relative;
+      }
+      .cell {
+        aspect-ratio: 1;
+        background: #1c2257;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+      }
+      .cell.gold {
+        background: linear-gradient(135deg, #7a5a10, #ffc83d 50%, #7a5a10);
+        box-shadow: inset 0 0 12px #fff6;
+      }
+      .sym {
+        font-size: clamp(1.5rem, 8.5vw, 2.8rem);
+        line-height: 1;
+        text-shadow: 0 0 12px var(--c);
+        font-weight: 700;
+      }
+      .cell.gold .sym {
+        filter: drop-shadow(0 0 3px #000);
+      }
+      .sym.fall {
+        animation: fall 0.38s cubic-bezier(0.3, 1.4, 0.5, 1);
+      }
+      .sym.win {
+        animation: pulse 0.3s ease-in-out infinite alternate;
+      }
+      @keyframes fall {
+        from {
+          transform: translateY(-260%);
+          opacity: 0.2;
+        }
+        to {
+          transform: none;
+          opacity: 1;
+        }
+      }
+      @keyframes pulse {
+        to {
+          transform: scale(1.25);
+          filter: brightness(1.7);
+        }
+      }
+      #hud {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        margin-top: 8px;
+      }
+      .box {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 6px 8px;
+        text-align: center;
+      }
+      .box small {
+        display: block;
+        color: var(--mut);
+        font-size: 0.65rem;
+      }
+      .box b {
+        font-size: 1.05rem;
+      }
+      #bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+      }
+      button {
+        font: inherit;
+        color: var(--txt);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+      button:hover {
+        border-color: var(--teal);
+      }
+      button:focus-visible {
+        outline: 2px solid var(--teal);
+        outline-offset: 2px;
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      #spin {
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #06231e;
+        background: radial-gradient(circle at 35% 30%, #8ff5e2, var(--teal));
+        border: 3px solid #b6fff1;
+        box-shadow: 0 0 20px #35e0c288;
+      }
+      #msg {
+        min-height: 1.4em;
+        margin-top: 8px;
+        color: var(--gold);
+        font-size: 0.9rem;
+        text-align: center;
+      }
+      #rules {
+        display: none;
+        margin-top: 10px;
+        width: min(96vw, 520px);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 0.82rem;
+        line-height: 1.5;
+        color: var(--mut);
+      }
+      #rules b {
+        color: var(--txt);
+      }
+      #ov {
+        position: fixed;
+        inset: 0;
+        background: #05061ccc;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        padding: 20px;
+      }
+      #ov .card {
+        background: var(--panel);
+        border: 2px solid var(--gold);
+        border-radius: 14px;
+        padding: 20px;
+        max-width: 420px;
+        text-align: center;
+      }
+      #ov h2 {
+        margin: 0 0 8px;
+        color: var(--gold);
+      }
+      #ov p {
+        color: var(--txt);
+        line-height: 1.5;
+        margin: 0 0 14px;
+      }
+      #go {
+        background: var(--gold);
+        color: #1a1200;
+        font-weight: 700;
+        border: none;
+      }
+      img.sym.shuf,
+      .sym.shuf {
+        filter: blur(1.2px) brightness(1.1);
+      }
+      .reel {
+        position: absolute;
+        top: 0;
+        overflow: hidden;
+        border-radius: 8px;
+        pointer-events: none;
+      }
+      .strip {
+        will-change: transform;
+      }
+      img.sym {
+        width: 84%;
+        height: 84%;
+        object-fit: cover;
+        border-radius: 10px;
+      }
+      .sym.tgt {
+        animation: pulse 0.2s ease-in-out infinite alternate;
+        filter: drop-shadow(0 0 8px var(--pink)) hue-rotate(80deg);
+      }
+      #mage {
+        position: absolute;
+        left: calc(50% - 45px);
+        top: -48px;
+        width: 90px;
+        height: 90px;
+        display: none;
+        pointer-events: none;
+        z-index: 5;
+      }
+      #mage.fly {
+        display: block;
+        animation: fly 1.6s ease-out forwards;
+      }
+      #mage.hov {
+        display: block;
+        animation: bob 0.9s ease-in-out infinite alternate;
+      }
+      #mage.leave {
+        display: block;
+        animation: away 0.7s ease-in forwards;
+      }
+      #mage img {
+        width: 90px;
+        height: 90px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 2px solid #c58bff;
+        box-shadow: 0 0 18px #c58bff;
+      }
+      @keyframes fly {
+        0% {
+          left: -110px;
+          top: 70%;
+          transform: rotate(-20deg);
+        }
+        40% {
+          left: 65%;
+          top: 40%;
+          transform: rotate(15deg);
+        }
+        70% {
+          left: 15%;
+          top: 15%;
+          transform: rotate(-10deg);
+        }
+        100% {
+          left: calc(50% - 45px);
+          top: -48px;
+          transform: none;
+        }
+      }
+      @keyframes bob {
+        to {
+          transform: translateY(-8px);
+        }
+      }
+      @keyframes away {
+        to {
+          left: 110%;
+          top: -130px;
+          opacity: 0;
+          transform: rotate(25deg);
+        }
+      }
+      #evil {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: #1a0005dd;
+        border-radius: 14px;
+        z-index: 6;
+      }
+      #evil img {
+        width: 70%;
+        border-radius: 14px;
+        border: 3px solid #ff4f6a;
+        animation: pop 0.35s ease-out;
+      }
+      @keyframes pop {
+        from {
+          transform: scale(0.3);
+        }
+        to {
+          transform: none;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .sym.fall,
+        .sym.win,
+        .sym.tgt,
+        #mage,
+        #evil img {
+          animation: none !important;
+        }
+      }
+
+      /* ===== Kasynowy styl ===== */
+      body {
+        overflow-x: hidden;
+        background:
+          radial-gradient(900px 520px at 50% -8%, #6a1f7a77, transparent),
+          radial-gradient(600px 400px at 15% 90%, #16356a66, transparent),
+          linear-gradient(45deg, #ffffff07 25%, transparent 25% 75%, #ffffff07 75%) 0 0/44px 44px,
+          linear-gradient(45deg, #ffffff07 25%, transparent 25% 75%, #ffffff07 75%) 22px 22px/44px 44px,
+          #12061f;
+        font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background:
+          conic-gradient(from 195deg at 18% -12%, transparent 0 18deg, #ffffff14 24deg, transparent 30deg),
+          conic-gradient(from 165deg at 82% -12%, transparent 0 18deg, #ffffff14 24deg, transparent 30deg);
+        animation: sway 7s ease-in-out infinite alternate;
+      }
+      @keyframes sway {
+        to {
+          transform: rotate(3deg) scale(1.05);
+        }
+      }
+      h1 {
+        font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+        font-size: 2.1rem;
+        letter-spacing: 0.12em;
+        margin: 14px 0 2px;
+        background: linear-gradient(180deg, #fff6bd 8%, #ffc83d 46%, #b9770e 54%, #ffe27a 92%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        text-shadow: none;
+        filter: drop-shadow(0 2px 0 #4a2a00) drop-shadow(0 0 14px #ffb30088);
+      }
+      h1::before,
+      h1::after {
+        content: "♦";
+        font-size: 0.9rem;
+        margin: 0 0.7em;
+        vertical-align: middle;
+        -webkit-text-fill-color: #ff4f6a;
+        color: #ff4f6a;
+      }
+      .sub {
+        color: #d9b8ff;
+        letter-spacing: 0.06em;
+      }
+      .jt {
+        font-weight: 700;
+        color: #e5d29a;
+        background: linear-gradient(#3b2a73, #1b1142);
+        border: 1px solid #9a7420;
+        border-radius: 4px 4px 10px 10px;
+        box-shadow:
+          inset 0 1px 0 #fff3,
+          0 2px 0 #0008;
+      }
+      .jt[data-n="3"] {
+        --tc: #e08e4a;
+      }
+      .jt[data-n="4"] {
+        --tc: #d3dcea;
+      }
+      .jt[data-n="5"] {
+        --tc: #ffc83d;
+      }
+      .jt[data-n="6"] {
+        --tc: #6be7ff;
+      }
+      .jt.on {
+        color: #2a1700;
+        background: linear-gradient(#fffbe0, var(--tc));
+        border-color: #fff;
+        box-shadow: 0 0 18px var(--tc);
+        animation: tw 0.45s ease-in-out infinite alternate;
+      }
+      @keyframes tw {
+        to {
+          filter: brightness(1.35);
+          transform: translateY(-1px);
+        }
+      }
+      #wrap {
+        width: min(92vw, 520px);
+        margin: 18px 0 8px;
+        isolation: isolate;
+        border: 2px solid #e0b345;
+        border-radius: 16px;
+        background: linear-gradient(180deg, #2d1558, #170b30 55%, #0e0620);
+        box-shadow:
+          0 0 0 3px #3b2406,
+          0 0 46px #b43cff44,
+          0 26px 50px #000b,
+          inset 0 0 40px #0009;
+      }
+      #wrap::before {
+        content: "";
+        position: absolute;
+        inset: -12px;
+        z-index: -1;
+        pointer-events: none;
+        border: 7px dotted #ffe18a;
+        border-radius: 26px;
+        filter: drop-shadow(0 0 4px #ffcf4d);
+        animation: bulbs 1.2s steps(1) infinite;
+      }
+      @keyframes bulbs {
+        0% {
+          border-color: #ffe18a;
+        }
+        50% {
+          border-color: #ff9ad0;
+        }
+      }
+      #mk {
+        margin-bottom: 14px;
+      }
+      .mk {
+        height: 10px;
+        border-radius: 6px;
+        background: linear-gradient(#171040, #2a2268);
+        box-shadow: inset 0 1px 3px #000;
+      }
+      .mk.on {
+        background: linear-gradient(#fff3a8, #ffb300);
+        animation: tw 0.5s ease-in-out infinite alternate;
+      }
+      #board {
+        margin: 4px 3px;
+        border-radius: 6px;
+        box-shadow:
+          0 0 0 5px #09031a,
+          0 0 0 7px #cf9f33,
+          0 0 24px #7a2cff66;
+      }
+      .cell {
+        border-radius: 9px;
+        background: radial-gradient(circle at 30% 20%, #4d3da0, #1a144e 72%);
+        box-shadow:
+          inset 0 0 0 1px #ffffff1a,
+          inset 0 -8px 12px #0008;
+      }
+      #hud {
+        margin-top: 18px;
+      }
+      .box {
+        background: linear-gradient(#08030f, #1a0b2c);
+        border: 1px solid #b8861b;
+        border-radius: 8px;
+        box-shadow:
+          inset 0 0 14px #000,
+          0 0 0 2px #3a2208;
+      }
+      .box small {
+        color: #c9a8ff;
+        letter-spacing: 0.05em;
+      }
+      .box b {
+        font-family: "Courier New", Consolas, monospace;
+        font-size: 1.2rem;
+        color: #ffd35a;
+        text-shadow: 0 0 8px #ffb30099;
+      }
+      button {
+        position: relative;
+        overflow: hidden;
+        color: #ffeab0;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-shadow: 0 1px 0 #000a;
+        background: linear-gradient(180deg, #6a43a8, #2a1257 55%, #1d0b40);
+        border: 1px solid #e0b345;
+        border-radius: 10px;
+        box-shadow:
+          inset 0 1px 0 #fff5,
+          inset 0 -3px 6px #0007,
+          0 3px 0 #0f0522,
+          0 7px 12px #0009;
+        transition:
+          transform 0.08s,
+          box-shadow 0.08s,
+          filter 0.15s;
+      }
+      button::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 48%;
+        background: linear-gradient(#ffffff3d, #ffffff06);
+        border-radius: inherit;
+        pointer-events: none;
+      }
+      button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -70%;
+        width: 40%;
+        height: 100%;
+        background: linear-gradient(100deg, transparent, #ffffff66, transparent);
+        transform: skewX(-20deg);
+        transition: left 0.55s;
+        pointer-events: none;
+      }
+      button:hover:not(:disabled)::before {
+        left: 140%;
+      }
+      button:hover:not(:disabled) {
+        filter: brightness(1.18);
+        border-color: #fff1b0;
+      }
+      button:active:not(:disabled) {
+        transform: translateY(2px);
+        box-shadow:
+          inset 0 1px 0 #fff5,
+          inset 0 -2px 4px #0007,
+          0 1px 0 #0f0522,
+          0 3px 6px #0009;
+      }
+      button:disabled {
+        opacity: 0.5;
+        filter: grayscale(0.6);
+      }
+      #minus,
+      #plus {
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        font-size: 1.5rem;
+        line-height: 1;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 28%, #e8405c, #b3122f 60%, #7a0a20);
+        border: 3px dashed #fff;
+        box-shadow:
+          inset 0 0 0 3px #b3122f,
+          inset 0 0 0 5px #ffffffaa,
+          0 4px 0 #3d0511,
+          0 8px 12px #000a;
+      }
+      #spin {
+        position: relative;
+        width: 98px;
+        height: 98px;
+        border-radius: 50%;
+        font-size: 1.15rem;
+        letter-spacing: 0.08em;
+        color: #04301d;
+        text-shadow: 0 1px 0 #d6ffe9;
+        background: radial-gradient(circle at 35% 26%, #b8ffd8, #25c47f 45%, #087048);
+        background-color: #087048;
+        border: 4px solid #f6d56e;
+        box-shadow:
+          0 0 0 4px #7a5710,
+          0 0 0 7px #24160a,
+          inset 0 -9px 16px #04452c,
+          inset 0 2px 0 #fff9,
+          0 10px 16px #000a;
+      }
+      #spin::before {
+        content: "";
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        width: auto;
+        height: auto;
+        right: 8px;
+        bottom: 8px;
+        transform: none;
+        transition: none;
+        background: none;
+        border: 2px dashed #04301d99;
+        border-radius: 50%;
+        animation: rot 9s linear infinite;
+      }
+      #spin:disabled::before {
+        animation-duration: 0.7s;
+      }
+      #spin:hover:not(:disabled)::before {
+        left: 8px;
+      }
+      #spin:not(:disabled) {
+        animation: sg 1.4s ease-in-out infinite alternate;
+      }
+      #spin:disabled {
+        opacity: 1;
+        filter: saturate(0.55) brightness(0.85);
+      }
+      @keyframes rot {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes sg {
+        from {
+          box-shadow:
+            0 0 0 4px #7a5710,
+            0 0 0 7px #24160a,
+            inset 0 -9px 16px #04452c,
+            inset 0 2px 0 #fff9,
+            0 10px 16px #000a,
+            0 0 14px #35e08f66;
+        }
+        to {
+          box-shadow:
+            0 0 0 4px #7a5710,
+            0 0 0 7px #24160a,
+            inset 0 -9px 16px #04452c,
+            inset 0 2px 0 #fff9,
+            0 10px 16px #000a,
+            0 0 34px #35e08fcc;
+        }
+      }
+      #turbo.on {
+        color: #2a1700;
+        text-shadow: 0 1px 0 #fff8;
+        background: linear-gradient(180deg, #fff0a0, #e0a21c 55%, #b47410);
+      }
+      #msg {
+        font-weight: 700;
+        text-shadow: 0 0 10px #ffb300aa;
+      }
+      #rules {
+        background: linear-gradient(#1d0f3c, #12081f);
+        border: 1px solid #b8861b;
+        box-shadow: inset 0 0 20px #000a;
+      }
+      #ov .card {
+        background: radial-gradient(circle at 50% 0, #33186a, #150a2c 75%);
+        border: 4px double #ffd35a;
+        box-shadow:
+          0 0 50px #ffc83d55,
+          inset 0 0 30px #000a;
+      }
+      #go {
+        background: linear-gradient(180deg, #fff0a0, #e0a21c 55%, #b47410);
+        background-color: #b47410;
+        color: #2a1700;
+        text-shadow: 0 1px 0 #fff8;
+        border: 1px solid #fff1b0;
+        padding: 10px 20px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        body::before,
+        #wrap::before,
+        #spin,
+        #spin::before,
+        .jt.on,
+        .mk.on {
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Le Jew</h1>
+    <div id="jp"></div>
+    <div id="wrap">
+      <div id="mage"></div>
+      <div id="evil"></div>
+      <div id="mk"></div>
+      <div id="board"></div>
+      <div id="hud">
+        <div class="box"><small>Żetony</small><b id="bal">0</b></div>
+        <div class="box"><small>Wygrana</small><b id="win">0</b></div>
+        <div class="box"><small>Mnożnik kaskady</small><b id="mult">x1</b></div>
+      </div>
+      <div id="bar">
+        <button id="minus" aria-label="Zmniejsz stawkę">−</button>
+        <div class="box"><small>Stawka</small><b id="bet">0</b></div>
+        <button id="plus" aria-label="Zwiększ stawkę">+</button>
+        <button id="spin">SPIN</button>
+        <button id="turbo">⚡ Turbo: wył.</button>
+        <button id="info">ⓘ Zasady</button>
+        <button id="sim">∑ Sym. RTP</button>
+      </div>
+      <div id="msg"></div>
+    </div>
+    <div id="rules">
+      <b>Linie wypłat:</b> 20 stałych linii na 6 bębnach. Wygrywają co najmniej 3 takie same symbole obok siebie, licząc od lewej
+      strony. Stawka jest dzielona równo między linie; symbole na wygrywających liniach znikają, reszta spada (kaskada), a mnożnik
+      rośnie o 1 po każdej kaskadzie (do x50).<br />
+      <b>Złote pola:</b> miejsca wygranych zostają złote do końca spinu. Każde złote pole na wygrywającej linii zwiększa jej
+      wypłatę o 25%.<br />
+      <b>Znaczniki jackpotów:</b> pełna złota kolumna zapala znacznik. 3 kolumny = Mini x20, 4 = Minor x50, 5 = Major x250, 6 =
+      Grand x1000.<br />
+      <b>Darmowe spiny:</b> 3 lub więcej symboli ◎ na planszy po kaskadach daje 5 spinów (retrigger: +5). W bonusie złote pola i
+      mnożnik zostają między spinami.<br />
+      <b>Zły mag:</b> po wygranym spinie może się pojawić. Losuje 2–3 pola i zamienia je w przeklęte kafle ✖. Jeśli trafi w pole,
+      które dało wygraną (złote), cały spin przegrywa.<br />Maksymalna wygrana ze spinu: 20 000x stawki. Wartości wypłat i szanse
+      są autorskie i nie odpowiadają żadnej istniejącej grze.
+    </div>
+    <div id="ov">
+      <div class="card">
+        <h2 id="ovt"></h2>
+        <p id="ovp"></p>
+        <button id="go">Rozumiem</button>
+      </div>
+    </div>
+    <script>
+      const COLS = 6,
+        ROWS = 6,
+        SC = 7,
+        HX = 8;
+      const SYM = [
+        { b: 0.1, w: 20 },
+        { b: 0.12, w: 20 },
+        { b: 0.15, w: 20 },
+        { b: 0.2, w: 20 },
+        { b: 0.45, w: 12 },
+        { b: 0.8, w: 9 },
+        { b: 1.6, w: 6 },
+        { b: 0, w: 2.6 },
+        { b: 0, w: 0 },
+      ];
+      const TW = SYM.reduce((a, s) => a + s.w, 0);
+      const BETS = [10, 20, 50, 100, 200, 500, 1000];
+      const JP = { 3: ["Mini", 20], 4: ["Minor", 50], 5: ["Major", 250], 6: ["Grand", 1000] };
+      const PAYLINES = [
+        [0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 1],
+        [2, 2, 2, 2, 2, 2],
+        [3, 3, 3, 3, 3, 3],
+        [4, 4, 4, 4, 4, 4],
+        [5, 5, 5, 5, 5, 5],
+        [1, 0, 1, 2, 1, 0],
+        [4, 5, 4, 3, 4, 5],
+        [0, 1, 2, 1, 0, 1],
+        [5, 4, 3, 4, 5, 4],
+        [1, 2, 3, 2, 1, 2],
+        [4, 3, 2, 3, 4, 3],
+        [2, 1, 0, 1, 2, 3],
+        [3, 4, 5, 4, 3, 2],
+        [0, 1, 0, 1, 2, 1],
+        [5, 4, 5, 4, 3, 4],
+        [1, 2, 1, 2, 3, 2],
+        [4, 3, 4, 3, 2, 3],
+        [2, 3, 4, 3, 2, 1],
+        [3, 2, 1, 2, 3, 4],
+      ];
+      const LINE_PAYOUT_MULTIPLIERS = { 3: 1, 4: 2, 5: 5, 6: 10 };
+      const $ = (s) => document.querySelector(s);
+      let bal = 10000,
+        bi = 3,
+        free = 0,
+        mult = 1,
+        tier = 0,
+        busy = false,
+        turbo = false,
+        inBonus = false,
+        bonusWin = 0;
+      // KONFIGURACJA: grafiki symboli, maga i przeciwnika, szansa maga, skala wypłat
+      const IMG = {
+        s: ["israel.png", "garlic.avif", "money.jpeg", "train.jpg", "cap.jpg"],
+        mage: "jew.jpg",
+        evil: "jew.jpg",
+      };
+      let SIM = false,
+        PAY = 17.6,
+        MAGE_P = 0.2,
+        HIT_B = 0.2;
+      let g = [],
+        gold = [];
+      const blank = () => Array.from({ length: ROWS }, () => Array(COLS).fill(false));
+      const symbolImage = (index) => IMG.s[index % IMG.s.length];
+      function symbolPayout(index) {
+        const image = symbolImage(index);
+        const matchingSymbols = SYM.filter(
+          (symbol, symbolIndex) => symbolIndex !== SC && symbolIndex !== HX && symbol.w > 0 && symbolImage(symbolIndex) === image,
+        );
+        const totalWeight = matchingSymbols.reduce((total, symbol) => total + symbol.w, 0);
+        return matchingSymbols.reduce((total, symbol) => total + symbol.b * symbol.w, 0) / totalWeight;
+      }
+      const rnd = () => {
+        let x = Math.random() * TW;
+        for (let i = 0; i < SYM.length; i++) {
+          x -= SYM[i].w;
+          if (x < 0) return i;
+        }
+        return 0;
+      };
+      const sl = (ms) => (SIM ? Promise.resolve() : new Promise((r) => setTimeout(r, turbo ? ms / 3 : ms)));
+      const fmt = (n) => Math.round(n).toLocaleString("pl-PL");
+      function ov(t, p, btn) {
+        return new Promise((res) => {
+          if (SIM) return res();
+          $("#ovt").textContent = t;
+          $("#ovp").textContent = p;
+          $("#go").textContent = btn || "Dalej";
+          $("#ov").style.display = "flex";
+          $("#go").onclick = () => {
+            $("#ov").style.display = "none";
+            res();
+          };
+        });
+      }
+      function msg(t) {
+        if (SIM) return;
+        $("#msg").textContent = t;
+      }
+      function upd() {
+        if (SIM) return;
+        $("#bal").textContent = fmt(bal);
+        $("#bet").textContent = fmt(BETS[bi]);
+        $("#mult").textContent = "x" + mult;
+        const full = gold[0] ? fullCols() : [];
+        document.querySelectorAll(".mk").forEach((m, i) => m.classList.toggle("on", !!full[i]));
+        const n = full.filter(Boolean).length;
+        document.querySelectorAll(".jt").forEach((j) => j.classList.toggle("on", n >= +j.dataset.n));
+        $("#spin").disabled = busy;
+        $("#minus").disabled = busy || inBonus;
+        $("#plus").disabled = busy || inBonus;
+        $("#spin").textContent = inBonus ? "x" + free : "SPIN";
+      }
+      function fullCols() {
+        return Array.from({ length: COLS }, (_, c) => gold.every((row) => row[c]));
+      }
+      function draw(fx = {}) {
+        if (SIM) return;
+        const b = $("#board");
+        b.innerHTML = "";
+        for (let r = 0; r < ROWS; r++)
+          for (let c = 0; c < COLS; c++) {
+            const d = document.createElement("div");
+            d.className = "cell" + (gold[r][c] ? " gold" : "");
+            if (g[r][c] !== null) {
+              d.append(mk(symbolImage(g[r][c]), "sym " + (fx[r + "," + c] || "")));
+            }
+            b.append(d);
+          }
+        upd();
+      }
+      function findPaylineWins() {
+        const wins = [];
+        for (const line of PAYLINES) {
+          const firstSymbol = g[line[0]][0];
+          if (firstSymbol === null || firstSymbol === SC || firstSymbol === HX) continue;
+
+          const cells = [];
+          for (let c = 0; c < COLS; c++) {
+            const r = line[c];
+            const symbol = g[r][c];
+            if (symbol === null || symbol === SC || symbol === HX || symbolImage(symbol) !== symbolImage(firstSymbol)) {
+              break;
+            }
+            cells.push([r, c]);
+          }
+
+          if (cells.length >= 3) wins.push({ i: firstSymbol, cells });
+        }
+        return wins;
+      }
+      function gravity() {
+        const fx = {};
+        for (let c = 0; c < COLS; c++) {
+          const st = [];
+          for (let r = ROWS - 1; r >= 0; r--) if (g[r][c] !== null) st.push([g[r][c], r]);
+          for (let k = 0; k < ROWS; k++) {
+            const row = ROWS - 1 - k;
+            if (k < st.length) {
+              g[row][c] = st[k][0];
+              if (st[k][1] !== row) fx[row + "," + c] = "fall";
+            } else {
+              g[row][c] = rnd();
+              fx[row + "," + c] = "fall";
+            }
+          }
+        }
+        return fx;
+      }
+      async function play() {
+        if (busy) return;
+        const bet = BETS[bi];
+        if (!inBonus) {
+          if (bal < bet) {
+            msg("Brak żetonów. Użyj „Reset salda”.");
+            showReset();
+            return;
+          }
+          bal -= bet;
+          gold = blank();
+          mult = 1;
+          tier = 0;
+        } else free--;
+        busy = true;
+        msg("");
+        $("#win").textContent = "0";
+        g = Array.from({ length: ROWS }, () => Array.from({ length: COLS }, rnd));
+        const fx0 = {};
+        for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) fx0[r + "," + c] = "fall";
+        if (!SIM && !RM) {
+          const fin = g;
+          await reels(fin, (inBonus ? 1800 : 5000) / (turbo ? 3 : 1));
+          g = fin;
+          draw();
+          await sl(350);
+        } else {
+          draw(fx0);
+          await sl(550);
+        }
+        let win = 0;
+        while (true) {
+          const lineWins = findPaylineWins();
+          if (!lineWins.length) break;
+          const fx = {};
+          const winningCells = new Set();
+          for (const { i, cells } of lineWins) {
+            const gn = cells.filter(([r, c]) => gold[r][c]).length;
+            const lineBet = bet / PAYLINES.length;
+            win += symbolPayout(i) * LINE_PAYOUT_MULTIPLIERS[cells.length] * lineBet * (1 + 0.25 * gn) * mult * PAY;
+            cells.forEach(([r, c]) => {
+              const key = r + "," + c;
+              fx[key] = "win";
+              winningCells.add(key);
+            });
+          }
+          $("#win").textContent = fmt(win);
+          draw(fx);
+          await sl(700);
+          for (const key of winningCells) {
+            const [r, c] = key.split(",").map(Number);
+            gold[r][c] = true;
+            g[r][c] = null;
+          }
+          draw();
+          await sl(300);
+          const f2 = gravity();
+          mult = Math.min(mult + 1, 50);
+          draw(f2);
+          await sl(550);
+        }
+        const n = fullCols().filter(Boolean).length;
+        if (n >= 3 && n > tier) {
+          win += JP[n][1] * bet - (tier >= 3 ? JP[tier][1] * bet : 0);
+          tier = n;
+          msg("Jackpot " + JP[n][0] + "!");
+        }
+        if (win > 0 && Math.random() < MAGE_P) {
+          if (await mage()) {
+            win = 0;
+            tier = 0;
+          }
+        }
+        win = Math.min(win, bet * 20000);
+        bal += win;
+        if (inBonus) bonusWin += win;
+        $("#win").textContent = fmt(win);
+        let sc = 0;
+        g.forEach((row) =>
+          row.forEach((v) => {
+            if (v === SC) sc++;
+          }),
+        );
+        upd();
+        if (!inBonus && sc >= 3) {
+          await sl(700);
+          await ov(
+            "Darmowe spiny",
+            "Wypadło " + sc + " symboli ◎. Dostajesz 5 darmowych spinów. Złote pola i mnożnik zostają między spinami.",
+            "Start",
+          );
+          inBonus = true;
+          free = 5;
+          bonusWin = 0;
+          gold = blank();
+          mult = 1;
+          tier = 0;
+        } else if (inBonus && sc >= 3) {
+          free += 5;
+          msg("Retrigger! +5 spinów");
+        }
+        if (inBonus && free > 0) {
+          upd();
+          await sl(900);
+          busy = false;
+          return play();
+        }
+        if (inBonus) {
+          await sl(600);
+          await ov("Koniec bonusu", "Wygrana w rundzie bonusowej: " + fmt(bonusWin) + " żetonów.", "OK");
+          inBonus = false;
+          gold = blank();
+          mult = 1;
+          tier = 0;
+          draw();
+        }
+        busy = false;
+        upd();
+        if (bal < BETS[0]) showReset();
+      }
+      function showReset() {
+        msg("Brak żetonów na stawkę.");
+        if (!$("#rs")) {
+          const b = document.createElement("button");
+          b.id = "rs";
+          b.textContent = "Reset salda";
+          b.onclick = () => {
+            bal = 10000;
+            bi = Math.min(bi, BETS.length - 1);
+            b.remove();
+            msg("");
+            upd();
+          };
+          $("#bar").append(b);
+        }
+      }
+      function mk(src, cls) {
+        const i = new Image();
+        i.className = cls;
+        i.alt = "";
+        i.draggable = false;
+        i.onerror = () => {
+          console.error(`Nie udało się załadować grafiki: ${src}`);
+          i.remove();
+        };
+        i.src = src;
+        return i;
+      }
+      const RM = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion:reduce)").matches;
+      function reels(fin, T) {
+        return new Promise((res) => {
+          const b = $("#board"),
+            k = turbo ? 3 : 1;
+          g = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+          draw();
+          const cl = b.children[0],
+            cw = cl.offsetWidth,
+            ch = cl.offsetHeight,
+            gap = 4,
+            st = ch + gap;
+          const mkc = (i) => {
+            const d = document.createElement("div");
+            d.className = "cell";
+            d.style.cssText = "width:" + cw + "px;height:" + ch + "px;margin-bottom:" + gap + "px;flex:none";
+            d.append(mk(symbolImage(i), "sym"));
+            return d;
+          };
+          const R = [];
+          for (let c = 0; c < COLS; c++) {
+            const rl = document.createElement("div");
+            rl.className = "reel";
+            rl.style.cssText = "left:" + c * (cw + gap) + "px;width:" + cw + "px;height:" + (ROWS * st - gap) + "px";
+            const sp = document.createElement("div");
+            sp.className = "strip";
+            rl.append(sp);
+            b.append(rl);
+            for (let i = 0; i <= ROWS; i++) sp.append(mkc(rnd()));
+            const stop = T - (COLS - 1 - c) * T * 0.07;
+            R.push({ sp, c, off: 0, q: null, t2: 0, done: false, fs: Math.max(150, stop - 650 / k) });
+          }
+          const t0 = performance.now();
+          let last = t0;
+          const fr = (now) => {
+            const t = now - t0,
+              dt = Math.min(0.05, (now - last) / 1000);
+            last = now;
+            let all = true;
+            for (const o of R) {
+              if (o.done) continue;
+              all = false;
+              if (t >= o.fs && !o.q) {
+                o.q = [];
+                for (let r = ROWS - 1; r >= 0; r--) o.q.push(fin[r][o.c]);
+                o.q.push(rnd());
+                o.t2 = t;
+              }
+              const v = o.q ? Math.max(300 * k, 1400 * k * (1 - (t - o.t2) / (650 / k))) : 1400 * k;
+              o.off += v * dt;
+              while (o.off >= st) {
+                o.off -= st;
+                const nx = o.q && o.q.length ? o.q.shift() : rnd();
+                o.sp.prepend(mkc(nx));
+                o.sp.lastChild.remove();
+                if (o.q && !o.q.length) {
+                  o.off = 0;
+                  o.done = true;
+                  break;
+                }
+              }
+              o.sp.style.transform = "translateY(" + (o.off - st) + "px)";
+            }
+            if (all) {
+              res();
+              return;
+            }
+            requestAnimationFrame(fr);
+          };
+          requestAnimationFrame(fr);
+        });
+      }
+      async function mage() {
+        const m = $("#mage");
+        if (!SIM) {
+          m.innerHTML = "";
+          m.append(mk(IMG.mage, "mg"));
+          m.className = "fly";
+          msg("Zły mag nadlatuje…");
+          await sl(1600);
+          m.className = "hov";
+        }
+        const all = [];
+        for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) all.push([r, c]);
+        const n = 2 + (Math.random() < 0.5 ? 1 : 0),
+          pick = [];
+        while (pick.length < n) {
+          const gl = all.filter(([r, c]) => gold[r][c]);
+          const src = gl.length && Math.random() < HIT_B ? gl : all;
+          const q = src[Math.floor(Math.random() * src.length)];
+          all.splice(all.indexOf(q), 1);
+          pick.push(q);
+        }
+        if (!SIM) {
+          msg("Mag losuje pola…");
+          let tm = 0,
+            dl = 90;
+          while (tm < 5000) {
+            const f = {};
+            for (let k = 0; k < n; k++) {
+              const r = Math.floor(Math.random() * ROWS),
+                c = Math.floor(Math.random() * COLS);
+              if (g[r][c] !== null) f[r + "," + c] = "tgt";
+            }
+            draw(f);
+            await sl(dl);
+            tm += dl;
+            dl = Math.round(dl * 1.12);
+          }
+        }
+        const fx = {};
+        pick.forEach(([r, c]) => (fx[r + "," + c] = "tgt"));
+        draw(fx);
+        await sl(1400);
+        const hit = pick.some(([r, c]) => gold[r][c]);
+        pick.forEach(([r, c]) => (g[r][c] = HX));
+        draw();
+        await sl(600);
+        if (!SIM) {
+          if (hit) {
+            const e = $("#evil");
+            e.innerHTML = "";
+            e.append(mk(IMG.evil, "ev"));
+            e.style.display = "flex";
+            msg("Runda przegrana! Mag trafił w wygrane pole.");
+            await sl(2200);
+            e.style.display = "none";
+          } else msg("Mag chybił, wygrana zostaje.");
+          m.className = "leave";
+          await sl(700);
+          m.className = "";
+        }
+        return hit;
+      }
+      async function simRTP() {
+        if (busy) return;
+        const bt = BETS[bi],
+          N = 20000,
+          b0 = bal;
+        SIM = true;
+        let w = 0;
+        for (let i = 0; i < N; i++) {
+          bal = 1e9;
+          await play();
+          w += bal - 1e9 + bt;
+        }
+        SIM = false;
+        bal = b0;
+        busy = false;
+        draw();
+        msg("RTP z " + N + " spinów: " + ((w / (N * bt)) * 100).toFixed(1) + "%");
+      }
+      $("#sim").onclick = simRTP;
+      // init
+      $("#jp").innerHTML = Object.entries(JP)
+        .map(([n, [nm, m]]) => `<div class="jt" data-n="${n}">${nm} x${m}</div>`)
+        .join("");
+      $("#mk").innerHTML = '<div class="mk"></div>'.repeat(COLS);
+      gold = blank();
+      g = Array.from({ length: ROWS }, () =>
+        Array.from({ length: COLS }, () => {
+          let x;
+          do x = rnd();
+          while (x === SC);
+          return x;
+        }),
+      );
+      draw();
+      $("#spin").onclick = play;
+      $("#plus").onclick = () => {
+        if (bi < BETS.length - 1) {
+          bi++;
+          upd();
+        }
+      };
+      $("#minus").onclick = () => {
+        if (bi > 0) {
+          bi--;
+          upd();
+        }
+      };
+      $("#turbo").onclick = (e) => {
+        turbo = !turbo;
+        e.target.textContent = "⚡ Turbo: " + (turbo ? "wł." : "wył.");
+        e.target.classList.toggle("on", turbo);
+      };
+      $("#info").onclick = () => {
+        const r = $("#rules");
+        r.style.display = r.style.display === "block" ? "none" : "block";
+      };
+      document.addEventListener("keydown", (e) => {
+        if (e.code === "Space" && $("#ov").style.display !== "flex") {
+          e.preventDefault();
+          play();
+        }
+      });
+      ov(
+        "To nie jest gra hazardowa",
+        "Le Jew to darmowa demonstracja mechaniki gry. Używa wyłącznie wirtualnych żetonów, które nie mają żadnej wartości. Nie można ich wpłacić, kupić ani wypłacić jako prawdziwych pieniędzy, a także wymienić na nagrody. Nie gra się tu o prawdziwe pieniądze.",
+        "Rozumiem, wchodzę",
+      );
+    </script>
+  </body>
+</html>
